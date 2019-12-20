@@ -75,6 +75,7 @@ namespace Identityproject.Controllers
         }
 
         // GET: Users/Create
+        
         public ActionResult Create()
         {
             return View();
@@ -83,6 +84,8 @@ namespace Identityproject.Controllers
         // POST: Users/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+
+            //for adding user to specified role
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async System.Threading.Tasks.Task<ActionResult> Create([Bind(Include = "id,UniversityName,City,PostalCode,StreetAddress,Country,Email,Password")] User user)
@@ -97,8 +100,14 @@ namespace Identityproject.Controllers
                 if (result.Succeeded)
                 {
                     await this.UserManager.AddToRoleAsync(users.Id, "Admin");
+                    var code = await UserManager.GenerateEmailConfirmationTokenAsync(users.Id);
+                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = users.Id, code = code }, protocol: Request.Url.Scheme);
+                    await UserManager.SendEmailAsync(users.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+                    return RedirectToAction("Login", "Account");
                 }
-               
+
             }
             return View(user);
         }
